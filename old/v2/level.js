@@ -1,0 +1,172 @@
+console.log('load level 1')
+
+sectors = [
+{
+    static:true,
+    id:0,
+    ch:50,
+    fh:-30,
+    ceil_color:'grey',
+    floor_color:'lightgrey',
+    points:[   
+        [0, 0, 'pink'],
+        [500, 0, 'red'],
+        [500, 500, 'green'],
+        [0, 500, 'yellow'],
+]},
+{
+    static:false,
+    id:1,
+    ch:50,
+    fh:-30,
+    ch1:20,
+    fh1:-20,
+    ceil_color:'magenta',
+    floor_color:'yellow',
+    points:[   
+        [380, 10, 'cyan'],
+        [450, 10, 'orange'],
+        [450, 150, 'green'],
+        [380, 150, 'brown'],
+]},
+{
+    static:false,
+    id:2,
+    ch:50,
+    fh:-20,
+    ch1:10,
+    fh1:-30,
+    ceil_color:'blue',
+    floor_color:'cyan',
+    points:[   
+        [390, 20, 'blue'],
+        [440, 20, 'red'],
+        [440, 140, 'yellow'],
+        [390, 140, 'orange'],
+]},
+//grieta
+{
+    static:false,
+    id:3,
+    ch:50,
+    fh:-30,
+    ch1:40,
+    fh1:-35,
+    ceil_color:'white',
+    floor_color:'cyan',
+    points:[   
+        [220, 220, 'pink'],
+        [220, 250, 'red'],
+        [250, 250, 'green'],
+        [280, 280, 'green'],
+        [320, 120, 'yellow']
+]},
+{
+    static:true,
+    id:4,
+    ch:50,
+    fh:-30,
+    ceil_color:'pink',
+    floor_color:'green',
+    points:[   
+        [120, 120, 'pink'],
+        [120, 150, 'red'],
+        [150, 150, 'green'],
+        [150, 120, 'yellow']
+]},
+{
+    static:true,
+    id:5,
+    ch:50,
+    fh:-30,
+    ceil_color:'pink',
+    floor_color:'green',
+    points:[   
+        [150, 150, 'pink'],
+        [150, 155, 'green'],
+        [155, 155, 'cyan'],
+        [155, 150, 'yellow']
+]},
+{
+    static:true,
+    id:6,
+    ch:50,
+    fh:-30,
+    ceil_color:'grey',
+    floor_color:'lightgrey',
+    points:[   
+        [0, 0, 'red'],
+        [50, 0, 'brown'],
+        [50, 50, 'red'],
+        [0, 50, 'brown'],
+]},
+{
+    static:true,
+    id:7,
+    ch:50,
+    fh:-30,
+    ceil_color:'grey',
+    floor_color:'lightgrey',
+    points:[   
+        [0, 100, 'red'],
+        [50, 100, 'brown'],
+        [50, 150, 'red'],
+        [0, 150, 'brown'],
+]},
+{
+    static:true,
+    id:8,
+    ch:50,
+    fh:-30,
+    ceil_color:'grey',
+    floor_color:'lightgrey',
+    points:[   
+        [0, 200, 'red'],
+        [50, 200, 'brown'],
+        [50, 250, 'red'],
+        [0, 250, 'brown'],
+]},
+{
+    static:false,
+    id:9,
+    ch:50,
+    fh:-30,
+    ch1:40,
+    fh1:-20,
+    ceil_color:'orange',
+    floor_color:'pink',
+    points:[   
+        [0, 250, 'red'],
+        [50, 250, 'brown'],
+        [50, 300, 'red'],
+        [0, 300, 'brown'],
+]},
+{
+    static:true,
+    id:10,
+    ch:50,
+    fh:-30,
+    ceil_color:'grey',
+    floor_color:'lightgrey',
+    points:[   
+        [20, 300, 'green'],
+        [80, 300, 'black'],
+        [80, 350, 'green'],
+        [20, 350, 'black'],
+]},
+//room
+{
+    static:true,
+    id:11,
+    ch:50,
+    fh:-30,
+    ceil_color:'grey',
+    floor_color:'lightgrey',
+    points:[   
+        [0, 350, 'blue'],
+        [100, 350, 'blue'],
+        [150, 400, 'blue'],
+        [200, 500, 'blue'],
+        [0, 500, 'blue'],
+]},
+]
