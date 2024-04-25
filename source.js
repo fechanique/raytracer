@@ -8,7 +8,7 @@ aspect = 4/3
 threads = 2
 game_width = 640
 res = 2
-content_width = '80%'
+content_width = '120vh'
 
 document.getElementById('content').style.width = content_width
 
