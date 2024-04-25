@@ -37,7 +37,7 @@ stats.id = 'stats'
 threadRender.appendChild(stats)
 
 player = JSON.parse(localStorage.getItem("player"))
-if(!player) player = {posx: 100, posy: 100, rot: 0, head: 0, jump: 0, height:50, to_fly:false}
+if(!player) player = {posx: 300, posy: 300, rot: 0, head: 0, jump: 0, height:50, to_fly:false}
 inventory = []
 inventory_index = undefined
 
