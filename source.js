@@ -83,7 +83,7 @@ for(let i = 0; i < threads; i++){
     rayThreads.push(rays.slice(i*(rays.length/threads), (i+1)*(rays.length/threads)))
     worker = new Worker('worker.js')
     worker.index = i
-    worker.postMessage({action:'init', cam: cam, game: game, renderCanvas:threadCanvas}, [threadCanvas])
+    worker.postMessage({action:'init', cam: cam, game: game, renderCanvas:threadCanvas, index:i}, [threadCanvas])
     workers.push(worker)
     worker.onmessage = function(e){
         //processRays(e.data)

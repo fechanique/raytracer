@@ -326,7 +326,7 @@ function drawSky(){
             let alpha = data[a+x] >> 24 & 0xFF
             if(alpha == 255) continue
             //let image_x = ((x - 320) / game.t_width) * 3000 + (360 * player.rot / 359)
-            let image_x = ((x/skybox.texture_w) - skybox.texture_width*player.rot/359)
+            let image_x = ((x/skybox.texture_w) - skybox.texture_width*player.rot/359) + threadIndex*game.t_width
             let image_y = (y + ((game.height/2)*(skybox.texture_h-1)) - player.head)*(skybox.texture_height / game.height) / skybox.texture_h
             let rgba = obscure(getPixel(Math.round(image_x), Math.round(image_y), skybox.texture), 0, 1)
             if(0 < alpha < 255) rgba = mixRgbAlpha([data[a+x] & 0xFF, data[a+x] >> 8 & 0xFF, data[a+x] >> 16 & 0xFF, alpha], rgba)
@@ -458,6 +458,7 @@ onmessage = function (event) {
         lineWidth = game.width/cam.num_rays
         renderCanvas = event.data.renderCanvas
         renderCtx = renderCanvas.getContext('2d', { willReadFrequently: true, alpha: false })
+        threadIndex = event.data.index
         //renderCtx.canvas.width = canvas.width
         //renderCtx.canvas.height = canvas.height
         //offscreen = new OffscreenCanvas(renderCanvas.width, renderCanvas.height) //revisar si esto mejora algo
