@@ -1,4 +1,4 @@
-multiplayer = true
+multiplayer = false
 
 function connect(){
     client = mqtt.connect('ws://mqtt.nodenvy.com')
