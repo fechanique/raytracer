@@ -3,15 +3,47 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/5.5.2/mqtt.min.js"></script>
 
 <body>
-    <canvas id="editor"></canvas>
-    <span id="render"></span>
-    <canvas id="zdepth"></canvas>
-    <span id="stats"></span>
-    
-    <script type="text/javascript" src="./levels/level.js"></script>
-    <script type="text/javascript" src="source.js"></script>
-    <script type="text/javascript" src="mqtt.js"></script>
-    <script type="text/javascript" src="image.js"></script>
-    <script type="text/javascript" src="functions.js"></script>
+    <div id="content"></div>
 </body>
+
 </html>
+
+<script type="text/javascript" src="./levels/level.js"></script>
+<script type="text/javascript" src="functions.js"></script>
+<script type="text/javascript" src="mqtt.js"></script>
+<script type="text/javascript" src="audio.js"></script>
+<script type="text/javascript" src="image.js"></script>
+<script type="text/javascript" src="source.js"></script>
+
+<style>
+    *{
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body, html{
+        width: 100%;
+        height: 100%;
+    }
+    body{
+        display: flex;
+    }
+    #content{
+        margin: auto;
+        display: flex;
+    }
+    #threadRender{
+        width: 100%;
+        margin: auto;
+        position: relative;
+        display: inline-block;
+    }
+    #stats{
+        position: absolute;
+        top: 0;
+        left: 0;
+        color: white;
+        background-color: black;
+        padding: 5px;
+    }
+</style>

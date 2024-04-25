@@ -4,9 +4,9 @@ function processLight(){
         sector.lights = []
         sector.floor_lights = []
         sector.ceil_lights = []
-        //for(let [i, point] of sector.points.entries()){
-        //    point[3] = sector.original.points[i][3]
-        //}
+        for(let [i, point] of sector.points.entries()){
+            point[3] = sector.original.points[i][3]
+        }
         for(let light of lights){
             if(light.z0 >= sector.z1 && light.z1 <= sector.z1 && light.z <= sector.z1){
                 let dist = sector.z1-light.z

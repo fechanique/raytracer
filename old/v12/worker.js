@@ -1,5 +1,4 @@
 printed = false
-rendered = false
 animating = false
 textures = {}
 rays = []
@@ -64,7 +63,7 @@ function renderFrame(){
                 coll.next_dist = coll.dist
             }
         }
-        /*for(var coll of ray.coll){
+        for(var coll of ray.coll){
             if(!coll.sector.floor_color) coll.out = false
             coll.ceils = []
             if(!coll.out){
@@ -83,7 +82,7 @@ function renderFrame(){
                 }
                 coll.ceils[coll.ceils.length-1][1] = coll.next_dist
             }
-        }*/
+        }
         ray.coll = ray.coll.filter(x => !x.out)
 
         sorted_coll = []
@@ -140,7 +139,6 @@ function renderFrame(){
     buf8 = new Uint8ClampedArray(buf)
     data = new Uint32Array(buf)
 
-    plane_y = {}
     for([index, ray] of rays.entries()){
         z_counter = 0
         z_buffer = new Array(game.height).fill(0)
@@ -165,9 +163,7 @@ function renderFrame(){
 
     drawSky()
     
-    //paintFrame()
     postMessage({id:'', fps:fps})
-    rendered = true
 }
 
 function drawWall(coll){
@@ -217,21 +213,6 @@ function drawWall(coll){
     }
 }
 
-function generatePlaneY(coll, isTop, z){
-    plane_y[coll.sector.id] = []
-    let y0 = 0
-    let y1 = game.height
-    if(isTop) y0 = game.height/2+player.head
-    else y1 = game.height/2+player.head
-    //if(!printed && isTop) console.log( coll.sector.name , y0, y1 )
-    for(y=y0; y<y1; y++){
-        let plane_height = z-player.height
-        let cons_1 = ((plane_height-player.jump)*cam.plane_dist)
-        let d = Math.abs(cons_1/(y-game.height/2-player.head))
-        plane_y[coll.sector.id][y] = (d)
-    }
-}
-
 function draw_plane(coll, isTop){
     if(isTop){
         z = coll.sector.z0
@@ -246,33 +227,29 @@ function draw_plane(coll, isTop){
         factor0 = coll.sector.ceil_light
         lights = coll.sector.ceil_lights
     }
-    //if(ray.i==debug_ray && !printed) console.log( coll.ceils )
-    //for(let ceil of coll.ceils){
-        let top_px = ((z-player.height-player.jump)/(coll.prev_dist*ray_cos))*cam.plane_dist
-        let bot_px = ((z-player.height-player.jump)/(coll.next_dist*ray_cos))*cam.plane_dist
-        //let plane_height = z-player.height
+    if(ray.i==debug_ray && !printed) console.log( coll.ceils )
+    for(let ceil of coll.ceils){
+        let top_px = ((z-player.height-player.jump)/(ceil[0]*ray_cos))*cam.plane_dist
+        let bot_px = ((z-player.height-player.jump)/(ceil[1]*ray_cos))*cam.plane_dist
+        let plane_height = z-player.height
         if(top_px<bot_px) [top_px, bot_px] = [bot_px, top_px]
 
         let y0 = Math.round(Math.max(((game.height/2)-(top_px)+player.head), 0))
         let y1 = Math.round(Math.min(((game.height/2)-(bot_px)+player.head), game.height))
-        //if(ray.i==debug_ray && !printed && isTop) console.log( coll.sector.name, y0, y1 )
-        if(y1<0 || y0>game.height) return //continue
-        if(z_buffer.slice(y0, y1+1).reduce((a, b) => a + b, 0) == y1-y0+1) return //continue
-        //let cons_1 = ((plane_height-player.jump)*cam.plane_dist)/ray_cos
+        if(y1<0 || y0>game.height) continue
+        if(z_buffer.slice(y0, y1+1).reduce((a, b) => a + b, 0) == y1-y0+1) continue
+        let cons_1 = ((plane_height-player.jump)*cam.plane_dist)/ray_cos
         let obscuredImage = null
         for(let y=y0; y<y1; y++){
+            let a = y*game.t_width
             if(z_buffer[y]!=0){
                 obscuredImage = null
                 continue
             }
-            let a = y*game.t_width
             if((y-y0)%lineWidth==0 || !obscuredImage){
-                if(!plane_y[coll.sector.id]) generatePlaneY(coll, isTop, z)
-                let d = plane_y[coll.sector.id][y]/ray_cos
-                //if(ray.i==debug_ray && !printed && isTop) console.log( coll.sector.name, y, plane_y[coll.sector.id], d )
-                //let d = Math.abs(cons_1/(y-game.height/2-player.head)) 
-                let image_x = (player.posx + ray_rot_cos*d)
-                let image_y = (player.posy + ray_rot_sin*d)
+                d = Math.abs(cons_1/(y-game.height/2-player.head))
+                let image_x = Math.floor(player.posx + ray_rot_cos*d)
+                let image_y = Math.floor(player.posy + ray_rot_sin*d)
                 let factor = factor0
                 if(lights){
                     for(var light of lights){
@@ -286,28 +263,28 @@ function draw_plane(coll, isTop){
                     factor = Math.max(Math.min(factor, 1), 0)
                     //if(ray.i==debug_ray && !printed) console.log( dist )
                 }
-                let texture_x = Math.round((image_x - coll.sector.points[0][0])*scale)
-                let texture_y = Math.round((image_y - coll.sector.points[0][1])*scale)
+                let texture_x = (image_x - coll.sector.points[0][0])*scale
+                let texture_y = (image_y - coll.sector.points[0][1])*scale
                 //if(ray.i==debug_ray && !printed) console.log(player.posy + ray_rot_sin*d, player.posy, d)
-                //try{
+                try{
                     obscuredImage = obscure(getPixel(texture_x, texture_y, texture), d, factor)
                     if(coll.sector.alpha) obscuredImage[3] = coll.sector.alpha
                     let alpha = data[a+x0] >> 24 & 0xFF
                     if(0 < alpha < 255) obscuredImage = mixRgbAlpha([data[a+x0] & 0xFF, data[a+x0] >> 8 & 0xFF, data[a+x0] >> 16 & 0xFF, alpha], obscuredImage)
-                //}catch(e){
-                //    console.log(texture_x, texture_y, image_x, image_y, coll, texture, d, factor, coll.sector.name, obscuredImage)
-                //    console.log(e)
-                //}
+                }catch(e){
+                    console.log(texture_x, texture_y, image_x, image_y, coll, texture, d, factor, coll.sector.name, obscuredImage)
+                    console.log(e)
+                }
             }
-            //try{
+            try{
                 if(obscuredImage[3] == 255){
                     z_counter++
                     z_buffer[y] = 1
                 }
-            //}catch(e){
-            //    console.log(image_x, image_y, coll)
-            //    console.log(e)
-            //}
+            }catch(e){
+                console.log(image_x, image_y, coll)
+                console.log(e)
+            }
         let pixel = (obscuredImage[3] << 24) | (obscuredImage[2] << 16) | (obscuredImage[1] << 8) | obscuredImage[0]
         //let pixel = (255 << 24) | (0 << 16) | (255 << 8) | 0
         for(let x = x0; x < x1; x++){ //esto es más rapido que el fill
@@ -316,26 +293,10 @@ function draw_plane(coll, isTop){
             //data[a+x] = (255 << 24) | (255 << 16) | (0 << 8) | 0
         }
         }
-    //}
-}
-
-function drawSky(){
-    for(y=0; y<game.height ; y++){
-        a = Math.floor(y*game.t_width)
-        for(x=0 ; x<game.t_width ; x++){
-            let alpha = data[a+x] >> 24 & 0xFF
-            if(alpha == 255) continue
-            //let image_x = ((x - 320) / game.t_width) * 3000 + (360 * player.rot / 359)
-            let image_x = ((x/skybox.texture_w) - skybox.texture_width*player.rot/359)
-            let image_y = (y + ((game.height/2)*(skybox.texture_h-1)) - player.head)*(skybox.texture_height / game.height) / skybox.texture_h
-            let rgba = obscure(getPixel(Math.round(image_x), Math.round(image_y), skybox.texture), 0, 1)
-            if(0 < alpha < 255) rgba = mixRgbAlpha([data[a+x] & 0xFF, data[a+x] >> 8 & 0xFF, data[a+x] >> 16 & 0xFF, alpha], rgba)
-            data[a+x] = (rgba[3] << 24) | rgba[2] << 16 | (rgba[1] << 8) | rgba[0] //a,b,g,r
-        }
     }
 }
 
-function drawSky_old(){
+function drawSky(){
     for(y=Math.floor(game.height/2+player.head)-1 ; y>=0 ; y--){
         a = Math.floor(y*game.t_width)
         for(x=0 ; x<game.t_width ; x++){
@@ -456,20 +417,18 @@ onmessage = function (event) {
         game = event.data.game
         debug_ray = cam.num_rays/2
         lineWidth = game.width/cam.num_rays
-        renderCanvas = event.data.renderCanvas
-        renderCtx = renderCanvas.getContext('2d', { willReadFrequently: true, alpha: false })
+        canvas = event.data.renderCanvas
+        renderCtx = canvas.getContext('2d', { willReadFrequently: true, alpha: false })
         //renderCtx.canvas.width = canvas.width
         //renderCtx.canvas.height = canvas.height
-        //offscreen = new OffscreenCanvas(renderCanvas.width, renderCanvas.height) //revisar si esto mejora algo
-        //offscreenCtx = offscreen.getContext('2d', { willReadFrequently: true, alpha: false  })
-        //imageData = offscreenCtx.createImageData(renderCanvas.width, renderCanvas.height)
-        imageData = renderCtx.createImageData(renderCanvas.width, renderCanvas.height)
+        offscreen = new OffscreenCanvas(canvas.width, canvas.height) //revisar si esto mejora algo
+        offscreenCtx = offscreen.getContext('2d', { willReadFrequently: true, alpha: false  })
+        imageData = offscreenCtx.createImageData(canvas.width, canvas.height)
     }else if(event.data.action == 'render'){
         rays = event.data.rays
         player = event.data.player
         sectors = event.data.sectors
         inside_sector = event.data.inside_sector
-        skybox = event.data.skybox
         renderFrame()
     }else if(event.data.action == 'paint'){
         paintFrame()
