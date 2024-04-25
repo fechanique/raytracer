@@ -202,6 +202,7 @@ function unequip(index){
 function equip(index){
     let sector = inventory[index]
     console.log('equip', sector.group)
+    audio.load('sounds/take.mp3')
     for(let sector of sectors){
         sector.equip = false
     }

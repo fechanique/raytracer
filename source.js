@@ -2,13 +2,13 @@ collisions = true
 light = false
 inside_sector = []
 patterns = {}
-map = true
+map = false
 fullscreen = true
 aspect = 4/3
-threads = 1
+threads = 2
 game_width = 640
 res = 2
-content_width = 'auto'
+content_width = '80%'
 
 document.getElementById('content').style.width = content_width
 
