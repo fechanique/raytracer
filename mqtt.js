@@ -3,7 +3,7 @@ multiplayer = true
 function connect(){
     id = Math.random().toString(16).substr(2, 8)
     pref = 'tracer/'+id
-    client = mqtt.connect('ws://mqtt.nodenvy.com', {will: {topic: pref+'/sync', payload: JSON.stringify({action:'disconnect'})}})
+    client = mqtt.connect('wss://mqtt.nodenvy.com', {will: {topic: pref+'/sync', payload: JSON.stringify({action:'disconnect'})}})
     client.on('connect', function(){
         console.log('-- mqtt connected --')
         client.subscribe('tracer/#')
