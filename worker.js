@@ -337,6 +337,7 @@ function drawSky(){
                 let image_y = ((y + ((game.height/2)*(skybox.texture_h-1)) - player.head)*(skybox.texture_height / game.height) / skybox.texture_h)
                 obscuredImage = obscure(getPixel(Math.round(image_x), Math.round(image_y), skybox.texture), 0, 1) //los frames se pierden aquí
             }
+            if(0 < alpha < 255) obscuredImage = mixRgbAlpha([data[a+x0] & 0xFF, data[a+x0] >> 8 & 0xFF, data[a+x0] >> 16 & 0xFF, alpha], obscuredImage)
             let pixel = (obscuredImage[3] << 24) | (obscuredImage[2] << 16) | (obscuredImage[1] << 8) | obscuredImage[0]
             for(let x = x0; x < x1; x++){ //esto es más rapido que el fill
                 data[a+x] = pixel
