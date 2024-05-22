@@ -26,7 +26,7 @@ cam = {
     fps: 30,
     fov: 31,
     plane_dist: 500,
-    num_rays: game.width/2,
+    num_rays: game.width/1,
     visibility: 2000
 }
 

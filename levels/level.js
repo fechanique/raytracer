@@ -1,8 +1,10 @@
-skybox = {
-    texture: 'skybox.jpg',
-    texture_h: 2,
-    texture_w: 1,
-}
+skybox = { texture: 'skybox2.jpg', texture_h: 3, texture_w: 6, }
+skybox = { texture: 'skybox3.jpg', texture_h: 2, texture_w: 2, }
+//skybox = { texture: 'skybox4.jpg', texture_h: 2, texture_w: 3, }
+//skybox = { texture: 'skybox5.jpg', texture_h: 2, texture_w: 3, }
+//skybox = { texture: 'skybox6.jpg', texture_h: 2, texture_w: 3, }
+//skybox = { texture: 'skybox7.jpg', texture_h: 2, texture_w: 3, }
+skybox = { texture: 'skybox8.jpg', texture_h: 3, texture_w: 5.33, }
 
 sectors = [
     {
@@ -199,7 +201,7 @@ floor_light:1,
         floor_color:'wood.jpg', floor_scale:1, floor_light:1,
         points:[
             [400, -150, 'glass.jpg', 1],
-            [500, -250, 'transparent.png', 1],
+            [500, -250, 'glass.jpg', 1],
         ],
         texture_h: 3, texture_w: 3,
         texture_x0: 6, texture_y0: 0,

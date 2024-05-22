@@ -5,10 +5,11 @@ patterns = {}
 map = false
 fullscreen = true
 aspect = 4/3
-threads = 2
+threads = 1
 game_width = 640
 res = 2
 content_width = '120vh'
+//content_width = 'auto'
 
 document.getElementById('content').style.width = content_width
 
@@ -35,11 +36,22 @@ document.getElementById('content').appendChild(threadRender)
 let stats = document.createElement('div')
 stats.id = 'stats'
 threadRender.appendChild(stats)
+let subtitles = document.createElement('div')
+subtitles.id = 'subtitles'
+threadRender.appendChild(subtitles)
+let players_stats = document.createElement('div')
+players_stats.id = 'players_stats'
+threadRender.appendChild(players_stats)
 
 player = JSON.parse(localStorage.getItem("player"))
-if(!player) player = {posx: 300, posy: 300, rot: 0, head: 0, jump: 0, height:50, to_fly:false}
+if(!player) player = player_init | {posx: 300, posy: 300, rot: 0, head: 0, jump: 0, height:50, to_fly:false}
+player.id = id
+player.lives = 3
+player.deaths = 0
 inventory = []
 inventory_index = undefined
+players = []
+players.push(player)
 
 game = {
     width: game_width,
@@ -205,6 +217,11 @@ function renderFrame(elapsedTime){
         editorCtx.restore()
     }
 
+    players_stats.innerHTML = ''
+    for(let player of players){
+        players_stats.innerHTML += player.id +' l:'+ player.lives +' d:'+ player.deaths +'</br>'
+    }
+
     inside_sector = []
     for(let[index, sector] of sectors.entries()){
         if(sector.animate && typeof window[sector.animate] == 'function') window[sector.animate](sector, elapsedTime)
@@ -254,6 +271,8 @@ gameTime = 0
 gameSin = 0
 actionTime = 0
 steepTime = 0
+max_height = 50
+min_height = 20
 function frame(time) {
     elapsedTime = (time - previousTime)
     delta_v = vel*elapsedTime
@@ -299,9 +318,9 @@ function frame(time) {
             sx2 = points[j][0]
             sy2 = points[j][1]
             let temp_int = findIntersection(player.posx+delta_x, player.posy+delta_y, player.x1, player.y1, sx1, sy1, sx2, sy2)
-            let player_dist = distanceAnglePointSegment(sx1, sy1, sx2, sy2, player.posx+delta_x, player.posy+delta_y)
+            let player_dist = distancePointSegment(sx1, sy1, sx2, sy2, player.posx+delta_x, player.posy+delta_y)
             let normal = calculateNormalAngle(sx1, sy1, sx2, sy2, player.posx+delta_x, player.posy+delta_y)
-            p_colls.push({id:i, dist:player_dist.dist, angle:normal, world_angle:player_dist.angle, sector})
+            p_colls.push({id:i, dist:player_dist.distance, angle:normal, isFacing:player_dist.isFacing, sector})
             if(temp_int){
                 let temp_dist = calcDistance(player.posx+delta_x, player.posy+delta_y, temp_int.intersectX, temp_int.intersectY)
                 player_coll.push({int:temp_int, dist:temp_dist, sector, id:i})
@@ -310,14 +329,15 @@ function frame(time) {
     }
     player_coll.sort((a, b) => a.dist - b.dist)
     p_colls.sort((a, b) => { return a.dist - b.dist })
-    p_colls = p_colls.filter(e=>e.dist<20 && player.height-10+player.jump<=e.sector.z0 && player.height+player.jump>=e.sector.z1 && !e.sector.traspase)
+    //console.log(p_colls[0].dist)
+    p_colls = p_colls.filter(e=>e.dist<20 && player.jump+player.height-10<=e.sector.z0 && player.height+10+player.jump>=e.sector.z1 && !e.sector.traspase)
     if(collisions && p_colls.length>0){
         //console.log('--------------------')
         let n_delta_x = delta_v
         let n_delta_y = delta_v
         p_coll = p_colls[0]
+        //console.log(p_coll.sector.name, p_coll.id, p_coll.isFacing, p_coll.dist, p_coll.angle)
         let last_angle = p_coll.angle
-        let last_world_angle = p_coll.world_angle
         //console.log(Math.round(player.rot*100)/100, Math.round(p_coll.angle*100)/100)
         px = Math.cos((player.rot)*Math.PI/180)
         py = Math.sin((player.rot)*Math.PI/180)
@@ -329,22 +349,30 @@ function frame(time) {
         //console.log('sn', sn, 'cn', cn)
         //console.log(ny*sn, nx*sn)
         
-        n_delta_x *= (ny*Math.sin((p_coll.angle-player.rot)*Math.PI/180))
-        n_delta_y *= (nx*Math.sin((p_coll.angle-player.rot)*Math.PI/180))
+        if(!p_coll.isFacing){
+            n_delta_x *= (ny*Math.sin((p_coll.angle-player.rot)*Math.PI/180))
+            n_delta_y *= (nx*Math.sin((p_coll.angle-player.rot)*Math.PI/180))
+        }else{
+            
+        }
+        delta_x = delta_x!=0?n_delta_x:0
+        delta_y = delta_y!=0?n_delta_y:0
         for(let p_coll2 of p_colls){ // se queda parado en las esuinas
             if(last_angle == p_coll2.angle) continue
             else{
-                n_delta_x = 0
-                n_delta_y = 0
+                //console.log(p_coll2.sector.name, p_coll2.id, p_coll2.isFacing, p_coll2.dist, p_coll2.angle)
+                let dist2 = distancePointSegment(
+                    p_coll2.sector.points[p_coll2.id][0], p_coll2.sector.points[p_coll2.id][1],
+                    p_coll2.sector.points[(p_coll2.id+1)%p_coll2.sector.points.length][0], p_coll2.sector.points[(p_coll2.id+1)%p_coll2.sector.points.length][1],
+                    player.posx+delta_x, player.posy+delta_y).distance
+                //console.log('dist', dist2)
+                //if(!p_coll2.isFacing){
+                    delta_x = 0
+                    delta_y = 0
+                //}
                 break
             }
         }
-        //console.log(delta_x, delta_y)
-        delta_x = delta_x!=0?n_delta_x:0
-        delta_y = delta_y!=0?n_delta_y:0
-    }else if(collisions && p_colls.length>1){
-        n_delta_x = 0
-        n_delta_y = 0
     }
     player.posx += delta_x
     player.posy += delta_y
@@ -416,7 +444,7 @@ function frame(time) {
                 }, 100)
             }
             let inventory_elem = inventory[inventory_index] 
-            if(inventory_elem && inventory_elem.group == 'pistola'){
+            if(inventory_elem && inventory_elem == 'pistola'){
                 audio.load('sounds/gun.mp3')
                 elem = player_coll.find(e=>e.dist<1000 && player.height-10+player.jump<=e.sector.z0 && player.height+player.jump>=e.sector.z1 && !e.sector.traspase)
                 if(elem){
@@ -430,10 +458,10 @@ function frame(time) {
                 audio.load('sounds/use.mp3')
                 elem = player_coll.find(e=>e.dist<100 && player.height-10+player.jump<=e.sector.z0 && player.height+player.jump>=e.sector.z1 && !e.sector.traspase)
                 if(elem){
-                    console.log('use', elem.sector.name, inventory_elem.group)
+                    console.log('use', elem.sector.name, inventory_elem)
                     if(elem.sector.use){
-                        window[elem.sector.use](elem.sector, inventory_elem.group)
-                        sync({action:'use', data:elem.sector, inventory:inventory_elem.group})
+                        window[elem.sector.use](elem.sector, inventory_elem)
+                        sync({action:'use', data:elem.sector, inventory:inventory_elem})
                     }
                 }
             }
@@ -455,16 +483,23 @@ function frame(time) {
         if(!to_crouch){
             //audio.load('sounds/crouch.mp3')
             to_crouch = true
+        }else if(new_height > min_height){
+            new_height -= vel*elapsedTime
+            new_height = Math.max(new_height, min_height)
         }
-        new_height -= vel*elapsedTime
-        new_height = Math.max(new_height, 20)
-    }else{
+    }else{ //cuidado que esto se dispara siempre
         if(to_crouch){
             //audio.load('sounds/crouch.mp3')
             to_crouch = false
+        }else if(new_height < max_height){
+            new_height += vel*elapsedTime
+            new_height = Math.min(new_height, max_height)
         }
-        new_height += vel*elapsedTime
-        new_height = Math.min(new_height, 50)
+    }
+    if(keys['f']){
+        voice.listen()
+    }else{ //cuidado que esto se dispara siempre
+        voice.stopListen()
     }
 
     if(keys['shift']){
@@ -480,7 +515,6 @@ function frame(time) {
     if(to_up){
         new_jump += vel/4*elapsedTime
         if(next_floor && new_jump >= next_floor.z0){
-            console.log('up')
             new_jump = next_floor.z0
             to_up = false
             audio.load('sounds/footstep.mp3')
@@ -489,7 +523,6 @@ function frame(time) {
     if(to_down){
         new_jump -= vel/4*elapsedTime
         if(next_floor && new_jump <= next_floor.z0){
-            console.log('down')
             to_down = false
             new_jump = next_floor.z0
             audio.load('sounds/footstep.mp3')
@@ -499,20 +532,24 @@ function frame(time) {
     next_floor = inside_sector.filter(e=>player.height+player.jump>=e.z0).sort((a, b) => (player.height+player.jump-a.z0) - (player.height+player.jump-b.z0))[0]
     next_ceil = inside_sector.filter(e=>player.height+player.jump<=e.z1).sort((a, b) => (a.z1-player.height+player.jump) - (b.z1-player.height+player.jump))[0]
     if(collisions && next_floor && new_jump < player.jump && new_jump<next_floor.z0){ // colisión suelo
-        new_jump = Math.floor(next_floor.z0)
         if(to_jump){
+            to_up = true
+            console.log('floor')
             audio.load('sounds/land.mp3')
             to_jump = false
             jump_time = 0
             jump0 = 0
             f = f0
+        }else{
+            new_jump = Math.round(next_floor.z0)
         }
     }
     if(collisions && next_ceil && new_height+new_jump > player.height+player.jump && new_height+new_jump>next_ceil.z1-10){ // colisión techo
         new_height = player.height
         if(new_jump > player.jump){
-            new_jump = Math.floor(next_ceil.z1-10-player.height)
+            new_jump = Math.round(next_ceil.z1-10-player.height)
             if(to_jump){
+                console.log('ceil')
                 jump_time = 0
                 jump0 = new_jump 
                 f = f0
@@ -524,12 +561,15 @@ function frame(time) {
         jump_time = 0
         jump0 = player.jump
         f = f0
+        console.log('falling')
     }
     else if(!to_down && !to_jump && !player.to_fly && collisions && next_floor && new_jump-5 > next_floor.z0){ //bajar escalera
         to_down = true
+        console.log('to_down')
     }
     else if(!to_up && !to_jump && !player.to_fly && collisions && next_floor && new_jump+5 < next_floor.z0){ //subir escalera
         to_up = true
+        console.log('to_up')
         //new_jump = Math.floor(next_floor.z0)
     }
     else if(!to_jump && !player.to_fly && collisions && !next_floor){ //caída al infinito
@@ -537,10 +577,11 @@ function frame(time) {
         jump_time = 0
         jump0 = player.jump
         f = f0
+        console.log('falling to infinity')
     }
     for(let p_coll of p_colls.filter(e=>e.dist<50 && e.sector.take)){
         if(typeof window[p_coll.sector.take] == 'function'){
-            window[p_coll.sector.take](p_coll.sector)
+            window[p_coll.sector.take](p_coll.sector.group)
             p_coll.sector.take = false
         }
     }
@@ -613,7 +654,6 @@ document.addEventListener('keyup', (event)=>{
 })
 
 window.addEventListener("click", (event) => {
-    console.log('audio enabled')
     audio.init()
 })
 
@@ -637,8 +677,8 @@ function pointInSector(posx, posy, sector) {
     return inside
 }
 
-function distanceAnglePointSegment(x1, y1, x2, y2, x0, y0) {
-    // Calcular vectores
+function distancePointSegment(x1, y1, x2, y2, x0, y0) {
+    // Calcula los vectores de dirección y sus componentes
     const A = x0 - x1;
     const B = y0 - y1;
     const C = x2 - x1;
@@ -670,12 +710,16 @@ function distanceAnglePointSegment(x1, y1, x2, y2, x0, y0) {
     // Calcular la distancia
     const dx = x0 - xx;
     const dy = y0 - yy;
+    const distance = Math.sqrt(dx * dx + dy * dy);
 
-    // Calcular el ángulo en radianes desde el eje x positivo hasta el vector (dx, dy)
-    const angleRadians = Math.atan2(dy, dx);
-    const angleDegrees = angleRadians * 180 / Math.PI; // Convertir a grados
+    // Determinar si el punto está enfrentado al segmento
+    const isFacing = param < 0 || param > 1;
 
-    return  {dist: Math.sqrt(dx * dx + dy * dy), angle: angleDegrees}
+    return {
+        distance: distance,
+        isFacing: isFacing,
+        closestPoint: { x: xx, y: yy }
+    };
 }
 
 function findIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {

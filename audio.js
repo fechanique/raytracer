@@ -5,6 +5,7 @@ class Audio{
 
     async init(){
         if(this.enabled) return
+        console.log('audio enabled')
         this.audioContext = new AudioContext()
         this.listener = this.audioContext.listener
         this.listener.positionX.value = player.posx

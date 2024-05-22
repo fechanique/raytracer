@@ -2,6 +2,7 @@ function door(sector){
     console.log('door', sector.status)
     if(sector.locked){
         audio.load('sounds/locked.mp3', sector.x, sector.y, sector.z)
+        voice.speak('La puerta está cerrada con llave')
         return
     }
     if(sector.status == 'closed'){
@@ -42,7 +43,7 @@ function animateDoor(sector, elapsedTime){
 
 function unlock(sector, inventory_group){
     if(inventory_group == 'key'){
-        sector.locked = false
+        sector.locked = !sector.locked
         audio.load('sounds/unlock.mp3', sector.x, sector.y, sector.z)
     }
 }
@@ -179,42 +180,42 @@ function rotation(sector, elapsedTime){
     rotateSector(sector, sector.x, sector.y, d)
 }
 
-function take(sector){
-    console.log('take', sector.name)
+function take(group_name){
+    console.log('take', group_name)
     audio.load('sounds/take.mp3')
-    while(sectors.filter(e=> e.group == sector.group).length>0){
-        sectors.splice(sectors.findIndex(e=>e.group == sector.group), 1)
+    while(sectors.filter(e=> e.group == group_name).length>0){
+        sectors.splice(sectors.findIndex(e=>e.group == group_name), 1)
     }
-    inventory.push(sector)
-    if(inventory[inventory_index]) unequip(inventory_index)
+    inventory.push(group_name)
     equip(inventory.length-1)
 }
 
 function unequip(index){
-    let sector = inventory[index]
-    console.log('unequip', sector.group)
-    while(sectors.filter(e=> e.group == sector.group).length>0){
-        sectors.splice(sectors.findIndex(e=>e.group == sector.group), 1)
+    let group_name = inventory[index]
+    console.log('unequip', group_name)
+    while(sectors.filter(e=> e.group == group_name).length>0){
+        sectors.splice(sectors.findIndex(e=>e.group == group_name), 1)
     }
     inventory_index = undefined
 }
 
 function equip(index){
-    let sector = inventory[index]
-    console.log('equip', sector.group)
+    if(inventory[inventory_index]) unequip(inventory_index)
+    let group_name = inventory[index]
+    console.log('equip', group_name)
     audio.load('sounds/take.mp3')
     for(let sector of sectors){
         sector.equip = false
     }
-    for(let [i, elem] of models[sector.group].sectors.entries()){
+    for(let [i, elem] of models[group_name].sectors.entries()){
         let clone_elem = JSON.parse(JSON.stringify(elem))
         prepareSector(performance.now()+i, clone_elem)
         clone_elem.equip = true
         clone_elem.traspase = true
-        clone_elem.x = models[sector.group].x
-        clone_elem.y = models[sector.group].y
-        clone_elem.z = models[sector.group].z
-        rotateSector(clone_elem, clone_elem.x, clone_elem.y, models[sector.group].r)
+        clone_elem.x = models[group_name].x
+        clone_elem.y = models[group_name].y
+        clone_elem.z = models[group_name].z
+        rotateSector(clone_elem, clone_elem.x, clone_elem.y, models[group_name].r)
         rotateSector(clone_elem, clone_elem.x, clone_elem.y, -10)
 
         sectors.push(clone_elem)
@@ -334,5 +335,23 @@ models = {
             texture_x0: 0,texture_y0: 0,
         },
     ]
-}
+},
+'player' : {
+    sectors: [
+        {
+            name:'player',
+            type:'sprite',
+            z0:60, z1:0,
+            ceil_color:'wood.jpg', ceil_scale:1, ceil_light:1,
+            floor_color:'wood.jpg', floor_scale:1, floor_light:1,
+            points:[
+                [-10, 0, 'duke.png', 1],
+                [10, 0, 'duke.png', 1],
+            ],
+            texture_h: 5.5, texture_w: 8,
+            texture_x0: 0, texture_y0: 0,
+            hit:'break_glass',
+        },
+    ]
+},
 }

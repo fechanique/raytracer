@@ -171,7 +171,7 @@ function renderFrame(){
 }
 
 function drawWall(coll){
-    let top_px = ((coll.sector.z0-player.height-player.jump)/(coll.dist*ray_cos))*cam.plane_dist
+    let top_px = ((coll.sector.z0-player.height-player.jump)/((coll.dist)*ray_cos))*cam.plane_dist
     let bot_px = ((coll.sector.z1-player.height-player.jump)/(coll.dist*ray_cos))*cam.plane_dist
     let y0 = Math.round(Math.max(((game.height/2)-(top_px)+player.head), 0))
     let y1 = Math.round(Math.min(((game.height/2)-(bot_px)+player.head), game.height))
@@ -266,7 +266,7 @@ function draw_plane(coll, isTop){
                 continue
             }
             let a = y*game.t_width
-            if((y-y0)%lineWidth==0 || !obscuredImage){
+            if((y)%lineWidth==0 || !obscuredImage){ //con (y-y0) se generan artefactos
                 if(!plane_y[coll.sector.id]) generatePlaneY(coll, isTop, z)
                 let d = plane_y[coll.sector.id][y]/ray_cos
                 //if(ray.i==debug_ray && !printed && isTop) console.log( coll.sector.name, y, plane_y[coll.sector.id], d )
@@ -319,18 +319,28 @@ function draw_plane(coll, isTop){
     //}
 }
 
+
 function drawSky(){
-    for(y=0; y<game.height ; y++){
-        a = Math.floor(y*game.t_width)
-        for(x=0 ; x<game.t_width ; x++){
-            let alpha = data[a+x] >> 24 & 0xFF
-            if(alpha == 255) continue
-            //let image_x = ((x - 320) / game.t_width) * 3000 + (360 * player.rot / 359)
-            let image_x = ((x/skybox.texture_w) - skybox.texture_width*player.rot/359) + threadIndex*game.t_width
-            let image_y = (y + ((game.height/2)*(skybox.texture_h-1)) - player.head)*(skybox.texture_height / game.height) / skybox.texture_h
-            let rgba = obscure(getPixel(Math.round(image_x), Math.round(image_y), skybox.texture), 0, 1)
-            if(0 < alpha < 255) rgba = mixRgbAlpha([data[a+x] & 0xFF, data[a+x] >> 8 & 0xFF, data[a+x] >> 16 & 0xFF, alpha], rgba)
-            data[a+x] = (rgba[3] << 24) | rgba[2] << 16 | (rgba[1] << 8) | rgba[0] //a,b,g,r
+    let w =(game.width*(360/(cam.fov*2))/skybox.texture_width)
+    let obscuredImage = null
+    for(let x0=0 ; x0<game.t_width ; x0+=lineWidth){
+        let x1 = Math.round(Math.min(x0+lineWidth, game.t_width))
+        for(y=0; y<game.height ; y++){
+            a = Math.round(y*game.t_width)
+            let alpha = data[a+x0] >> 24 & 0xFF
+            if(alpha == 255){
+                obscuredImage = null
+                continue
+            }
+            if(y%lineWidth==0 || !obscuredImage){
+                let image_x = ((x0/w) - skybox.texture_width*player.rot/359) + threadIndex*game.t_width/w
+                let image_y = ((y + ((game.height/2)*(skybox.texture_h-1)) - player.head)*(skybox.texture_height / game.height) / skybox.texture_h)
+                obscuredImage = obscure(getPixel(Math.round(image_x), Math.round(image_y), skybox.texture), 0, 1) //los frames se pierden aquí
+            }
+            let pixel = (obscuredImage[3] << 24) | (obscuredImage[2] << 16) | (obscuredImage[1] << 8) | obscuredImage[0]
+            for(let x = x0; x < x1; x++){ //esto es más rapido que el fill
+                data[a+x] = pixel
+            }
         }
     }
 }
