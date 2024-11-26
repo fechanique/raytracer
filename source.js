@@ -44,7 +44,7 @@ players_stats.id = 'players_stats'
 threadRender.appendChild(players_stats)
 
 player = JSON.parse(localStorage.getItem("player"))
-if(!player) player = player_init | {posx: 300, posy: 300, rot: 0, head: 0, jump: 0, height:50, to_fly:false}
+if(!player) player = {posx: 300, posy: 300, rot: 0, head: 0, jump: 0, height:50, to_fly:false}
 player.id = id
 player.lives = 3
 player.deaths = 0
